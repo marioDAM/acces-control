@@ -1,0 +1,1 @@
+desarrollo de un microservicio para la gestión de usuarios de una aplicación de control de acceso a un local. El sistema permitirá realizar operaciones básicas de creación y consulta de usuarios, así como búsquedas filtradas.
