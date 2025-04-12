@@ -35,7 +35,6 @@ public class UserControllerTest {
     }
     @Test
     void createUser_ShouldReturnCreatedUser() {
-        // Arrange
         CreateUserDTO createUserDTO = new CreateUserDTO();
         createUserDTO.setFirstName("John");
         createUserDTO.setLastName("Doe");
@@ -49,10 +48,8 @@ public class UserControllerTest {
 
         when(userService.createUser(createUserDTO)).thenReturn(user);
 
-        // Act
         ResponseEntity<User> response = userController.createUser(createUserDTO);
 
-        // Assert
         assertEquals(201, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals("John", response.getBody().getFirstName());
@@ -61,7 +58,6 @@ public class UserControllerTest {
 
     @Test
     void getUserById_ShouldReturnUser_WhenUserExists() {
-        // Arrange
         Long userId = 1L;
         User user = new User();
         user.setId(userId);
@@ -71,10 +67,8 @@ public class UserControllerTest {
 
         when(userService.getUserById(userId)).thenReturn(Optional.of(user));
 
-        // Act
         ResponseEntity<User> response = userController.getUserById(userId);
 
-        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertEquals("John", response.getBody().getFirstName());
