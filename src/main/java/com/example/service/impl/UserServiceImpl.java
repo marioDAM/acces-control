@@ -7,9 +7,10 @@ import com.example.repository.UserRepository;
 import com.example.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -41,23 +42,26 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    public List<User> filterUsers(String name, Integer age) {
-        log.info("UserServiceImpl.createUser Inicio parameter: name {} , age {}", name, age);
+    @Override
+    public Page<User> filterUsers(String name, Integer age, Pageable pageable) {
+        log.info("UserServiceImpl.filterUsers Inicio parameter: name {}, age {}, pageable {}", name, age, pageable);
         try {
             if (name == null && age == null) {
                 throw new IllegalArgumentException("Uno de los parámetros del filtro se tiene que rellenar");
             }
 
             if (name != null && age != null) {
-                return userRepository.findByFirstNameAndAge(name, age);
+                return userRepository.findByFirstNameAndAge(name, age, pageable);
             } else if (name != null) {
-                return userRepository.findByFirstName(name);
+                return userRepository.findByFirstName(name, pageable);
             } else {
-                return userRepository.findByAge(age);
+                return userRepository.findByAge(age, pageable);
             }
         } catch (IllegalArgumentException e) {
+            log.warn("Parámetros inválidos para el filtro: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            log.error("Error al consultar usuarios con filtros: {}", e.getMessage(), e);
             throw new RuntimeException("Error al consultar usuarios: " + e.getMessage(), e);
         }
     }
