@@ -1,6 +1,7 @@
 package controller;
 
 import com.example.Main;
+import com.example.config.exception.UserNotFoundException;
 import com.example.controller.UserController;
 import com.example.dto.CreateUserDTO;
 import com.example.model.User;
@@ -11,9 +12,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +39,9 @@ public class UserControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Test
-    void createUser_ShouldReturnCreatedUser() {
+    void createUserOK() {
         CreateUserDTO createUserDTO = new CreateUserDTO();
         createUserDTO.setFirstName("John");
         createUserDTO.setLastName("Doe");
@@ -57,7 +64,7 @@ public class UserControllerTest {
     }
 
     @Test
-    void getUserById_ShouldReturnUser_WhenUserExists() {
+    void getUserByIdOk() {
         Long userId = 1L;
         User user = new User();
         user.setId(userId);
@@ -76,21 +83,24 @@ public class UserControllerTest {
     }
 
     @Test
-    void getUserById_ShouldThrowException_WhenUserDoesNotExist() {
+    void getUserByIdKO() {
         Long userId = 1L;
 
         when(userService.getUserById(userId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> userController.getUserById(userId));
-        assertEquals("User not found with id: " + userId, exception.getMessage());
+        assertEquals("Usuario no encontrado con ID: " + userId, exception.getMessage());
         verify(userService, times(1)).getUserById(userId);
     }
 
     @Test
-    void filterUsers_ShouldReturnFilteredUsers() {
+    void filterUsersOk() {
         // Arrange
         String name = "John";
         Integer age = 30;
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         User user1 = new User();
         user1.setId(1L);
@@ -104,15 +114,39 @@ public class UserControllerTest {
         user2.setLastName("Smith");
         user2.setAge(30);
 
-        List<User> filteredUsers = Arrays.asList(user1, user2);
+        List<User> filteredUsers = List.of(user1, user2);
+        Page<User> userPage = new PageImpl<>(filteredUsers, pageable, filteredUsers.size());
 
-        when(userService.filterUsers(name, age)).thenReturn(filteredUsers);
+        when(userService.filterUsers(name, age, pageable)).thenReturn(userPage);
 
-        ResponseEntity<List<User>> response = userController.filterUsers(name, age);
+        // Act
+        ResponseEntity<Page<User>> response = userController.filterUsers(name, age, page, size);
 
+        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        verify(userService, times(1)).filterUsers(name, age);
+        assertEquals(2, response.getBody().getTotalElements());
+        verify(userService, times(1)).filterUsers(name, age, pageable);
+    }
+
+    @Test
+    void filterUsersKO() {
+        // Arrange
+        String name = "NonExistentName";
+        Integer age = 99;
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(userService.filterUsers(name, age, pageable)).thenReturn(emptyPage);
+
+        // Act & Assert
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            userController.filterUsers(name, age, page, size);
+        });
+
+        assertEquals("No se encontraron usuarios con los filtros proporcionados.", exception.getMessage());
+        verify(userService, times(1)).filterUsers(name, age, pageable);
     }
 }

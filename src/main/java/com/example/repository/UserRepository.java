@@ -1,6 +1,8 @@
 package com.example.repository;
 
 import com.example.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,10 +11,10 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    List<User> findByFirstName(String firstName);
+    Page<User> findByFirstName(String firstName, Pageable pageable);
 
-    List<User> findByAge(Integer age);
+    Page<User> findByAge(Integer age, Pageable pageable);
 
-    List<User> findByFirstNameAndAge(String firstName, Integer age);
+    Page<User> findByFirstNameAndAge(String firstName, Integer age, Pageable pageable);
 
 }
