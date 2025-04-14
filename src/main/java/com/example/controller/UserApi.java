@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @Validated
 public interface UserApi {
     @Operation(summary = "Crear un nuevo usuario", description = "Crea un nuevo usuario en el sistema.", operationId = "createUser", tags = {"Users"})
